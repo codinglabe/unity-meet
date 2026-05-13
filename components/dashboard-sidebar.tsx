@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -14,7 +14,7 @@ import {
   Menu,
   X,
 } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ThemeToggleSimple } from "@/components/theme-toggle";
 import { cn } from "@/lib/utils";
 
@@ -25,8 +25,41 @@ const navItems = [
   { icon: Settings, label: "Settings", href: "/settings" },
 ];
 
+function initialsFromEmail(email: string): string {
+  const local = email.split("@")[0] ?? "";
+  const parts = local.split(/[._-]/).filter(Boolean);
+  if (parts.length >= 2) {
+    return `${parts[0]![0]}${parts[1]![0]}`.toUpperCase();
+  }
+  if (local.length >= 2) {
+    return local.slice(0, 2).toUpperCase();
+  }
+  return (local[0] ?? "?").toUpperCase();
+}
+
 function SidebarContent({ onClose }: { onClose?: () => void }) {
   const pathname = usePathname();
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/auth/me")
+      .then((r) => r.json())
+      .then((data: { user?: { email: string } }) => {
+        if (!cancelled && data.user?.email) {
+          setUserEmail(data.user.email);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  async function handleLogout() {
+    await fetch("/api/auth/logout", { method: "POST" });
+    window.location.href = "/";
+  }
 
   return (
     <>
@@ -39,8 +72,10 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
         </Link>
         {onClose && (
           <button
+            type="button"
             onClick={onClose}
             className="p-2 hover:bg-muted rounded-lg transition-colors lg:hidden"
+            aria-label="Close menu"
           >
             <X className="w-5 h-5" />
           </button>
@@ -79,16 +114,25 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
         </div>
         <div className="flex items-center gap-3 p-3 rounded-xl bg-muted">
           <Avatar className="w-10 h-10">
-            <AvatarImage src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100" />
-            <AvatarFallback>GS</AvatarFallback>
+            <AvatarFallback>
+              {userEmail ? initialsFromEmail(userEmail) : "—"}
+            </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium truncate">George Smith</p>
+            <p className="text-sm font-medium truncate">
+              {userEmail ? userEmail.split("@")[0] : "Signed in"}
+            </p>
             <p className="text-xs text-muted-foreground truncate">
-              george@meetflow.com
+              {userEmail ?? "Loading…"}
             </p>
           </div>
-          <button className="p-1 hover:bg-card rounded transition-colors">
+          <button
+            type="button"
+            onClick={() => void handleLogout()}
+            className="p-1 hover:bg-card rounded transition-colors"
+            aria-label="Sign out"
+            title="Sign out"
+          >
             <LogOut className="w-4 h-4 text-muted-foreground" />
           </button>
         </div>
@@ -104,8 +148,10 @@ export function DashboardSidebar() {
     <>
       {/* Mobile Menu Button */}
       <button
+        type="button"
         onClick={() => setIsOpen(true)}
         className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-card border border-border rounded-lg shadow-sm hover:bg-muted transition-colors"
+        aria-label="Open menu"
       >
         <Menu className="w-5 h-5" />
       </button>

@@ -75,10 +75,10 @@ function Navbar() {
 
           <div className="hidden md:flex items-center gap-4">
             <ThemeToggleSimple />
-            <Link href="/dashboard">
+            <Link href="/login">
               <Button variant="ghost">Sign In</Button>
             </Link>
-            <Link href="/dashboard">
+            <Link href="/login">
               <Button className="gradient-primary text-white border-0 shadow-lg hover:opacity-90 transition-opacity">Get Started</Button>
             </Link>
           </div>
@@ -124,12 +124,12 @@ function Navbar() {
                 <span className="text-sm text-muted-foreground">Theme</span>
                 <ThemeToggleSimple />
               </div>
-              <Link href="/dashboard">
+              <Link href="/login">
                 <Button variant="ghost" className="w-full">
                   Sign In
                 </Button>
               </Link>
-              <Link href="/dashboard">
+              <Link href="/login">
                 <Button className="w-full">Get Started</Button>
               </Link>
             </div>
@@ -539,7 +539,7 @@ function CTASection() {
               client calls, and team collaborations.
             </p>
             <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link href="/dashboard">
+              <Link href="/login">
                 <Button
                   size="lg"
                   className="bg-white text-primary hover:bg-white/90 gap-2 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
